@@ -604,9 +604,9 @@ const model43Equipment: EquipmentOption[] = [
 export const finishOptions = {
   gelcoat: [
     { id: "white", label: "White", tone: "#eceee9", note: "Standard" },
-    { id: "telegrey", label: "Telegrey", tone: "#c7c7c0" },
-    { id: "sportive-grey", label: "Sportive Grey", tone: "#626b68" },
-    { id: "antracite", label: "Antracite", tone: "#263638" },
+    { id: "telegrey", label: "Telegrey", tone: "#b8bbb7" },
+    { id: "sportive-grey", label: "Sportive Grey", tone: "#707875" },
+    { id: "antracite", label: "Antracite", tone: "#465251" },
     { id: "elegant-blue", label: "Elegant Blue", tone: "#1595ca" },
   ] satisfies FinishOption[],
   vinyl: [
@@ -615,7 +615,7 @@ export const finishOptions = {
   ] satisfies FinishOption[],
   upholstery: [
     { id: "grey", label: "Grey", tone: "#777a77", note: "Standard" },
-    { id: "white", label: "White", tone: "#dedbd3" },
+    { id: "white", label: "White", tone: "#f5f3ee" },
     { id: "fossil", label: "Fossil", tone: "#aaa7a4" },
     { id: "october", label: "October", tone: "#ad2d1f" },
     { id: "cayenne", label: "Cayenne", tone: "#b1132a" },
@@ -738,6 +738,6 @@ export const finishLabels: Record<keyof typeof finishOptions, string> = {
 
 export function visualColour(gelcoat: string): "white" | "blue" | "antracite" {
   if (gelcoat === "elegant-blue") return "blue";
-  if (gelcoat === "antracite" || gelcoat === "sportive-grey") return "antracite";
+  if (gelcoat === "antracite") return "antracite";
   return "white";
 }

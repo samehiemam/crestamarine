@@ -196,6 +196,12 @@ export function Configurator() {
     finishOptions.gelcoat.find((item) => item.id === finishes.gelcoat)?.label ??
     "White";
   const visual = visualColour(finishes.gelcoat);
+  const upholstery =
+    finishOptions.upholstery.find((item) => item.id === finishes.upholstery) ??
+    finishOptions.upholstery[0];
+  const gelcoatTone =
+    finishOptions.gelcoat.find((item) => item.id === finishes.gelcoat)?.tone ??
+    finishOptions.gelcoat[0].tone;
 
   return (
     <>
@@ -210,7 +216,18 @@ export function Configurator() {
             <img
               src={current.images[visual]}
               alt={`${current.name} configured in ${gelcoat}`}
+              className={`boat-gelcoat-${finishes.gelcoat}`}
             />
+            <div className="boat-material-preview" aria-label="Selected exterior and upholstery colours">
+              <span>
+                <i style={{ background: gelcoatTone }} />
+                Gelcoat · {gelcoat}
+              </span>
+              <span>
+                <i style={{ background: upholstery.tone }} />
+                Upholstery · {upholstery.label}
+              </span>
+            </div>
           </div>
           <div className="config-stage-footer">
             <span>{gelcoat} gelcoat · {engine.propulsion}</span>
