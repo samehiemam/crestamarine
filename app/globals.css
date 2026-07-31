@@ -2711,6 +2711,7 @@ p {
 }
 
 .configurator-stage {
+  align-self: start;
   align-items: center;
   background:
     radial-gradient(circle at 55% 48%, rgba(85, 178, 187, 0.42), transparent 38%),
@@ -2719,11 +2720,13 @@ p {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: calc(100vh - 88px);
+  height: calc(100vh - 88px);
+  height: calc(100dvh - 88px);
+  min-height: 620px;
   overflow: hidden;
   padding: 52px 5vw 26px;
   position: sticky;
-  top: 0;
+  top: 88px;
 }
 
 .configurator-stage-copy {
@@ -4251,8 +4254,11 @@ p {
   }
 
   .configurator-stage {
+    align-self: stretch;
+    height: auto;
     min-height: 740px;
     position: relative;
+    top: auto;
   }
 
   .portal-shell {
