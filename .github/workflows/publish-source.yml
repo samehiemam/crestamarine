@@ -3,7 +3,7 @@ name: Publish Cresta Marine source
 on:
   push:
     paths:
-      - "cresta-source.zip.part-*"
+      - "cresta-source.ready"
 
 permissions:
   contents: write
@@ -18,7 +18,7 @@ jobs:
         run: |
           cat cresta-source.zip.part-* > cresta-source.zip
           unzip -oq cresta-source.zip
-          rm -f cresta-source.zip cresta-source.zip.part-*
+          rm -f cresta-source.zip cresta-source.zip.part-* cresta-source.ready
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
