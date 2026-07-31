@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export function SiteHeader({
@@ -11,6 +12,30 @@ export function SiteHeader({
   solid?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+
+  function isActive(href: string) {
+    if (href === "/fleet") return pathname.startsWith("/fleet");
+    if (href === "/my-cresta") {
+      return ["/my-cresta", "/portal", "/customer-login", "/team-access"].some(
+        (path) => pathname.startsWith(path),
+      );
+    }
+    return pathname === href;
+  }
+
+  function navLink(href: string, label: string) {
+    const active = isActive(href);
+    return (
+      <Link
+        href={href}
+        className={active ? "is-active" : undefined}
+        aria-current={active ? "page" : undefined}
+      >
+        {label}
+      </Link>
+    );
+  }
 
   return (
     <header
@@ -44,11 +69,11 @@ export function SiteHeader({
         <span />
       </button>
       <nav className={`site-nav ${open ? "site-nav--open" : ""}`}>
-        <Link href="/fleet">Fleet</Link>
-        <Link href="/configure">Configurator</Link>
-        <Link href="/services">Ownership</Link>
-        <Link href="/about">Cresta Marine</Link>
-        <Link href="/my-cresta">My Cresta</Link>
+        {navLink("/fleet", "Fleet")}
+        {navLink("/configure", "Configurator")}
+        {navLink("/services", "Ownership")}
+        {navLink("/about", "Cresta Marine")}
+        {navLink("/my-cresta", "My Cresta")}
         <a
           className="whatsapp-link"
           href="https://wa.me/201224212222"
@@ -56,12 +81,7 @@ export function SiteHeader({
           rel="noreferrer"
           aria-label="Chat with Cresta Marine on WhatsApp at +20 122 421 2222"
         >
-          <img
-            className="whatsapp-icon"
-            src="/images/whatsapp-mark-menu.svg"
-            alt=""
-            aria-hidden="true"
-          />
+          <span className="whatsapp-icon" aria-hidden="true" />
           <span className="whatsapp-handle">WhatsApp</span>
         </a>
         <a

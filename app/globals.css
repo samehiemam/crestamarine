@@ -791,17 +791,12 @@ p {
 }
 
 .whatsapp-icon {
+  background: currentColor;
   height: 17px;
-  max-width: none;
-  object-fit: contain;
   flex: 0 0 auto;
+  mask: url("/images/whatsapp-mark-menu.svg") center / contain no-repeat;
+  -webkit-mask: url("/images/whatsapp-mark-menu.svg") center / contain no-repeat;
   width: 17px;
-}
-
-@media (min-width: 821px) {
-  .site-header--inverse .whatsapp-icon {
-    filter: brightness(0) invert(1);
-  }
 }
 
 .whatsapp-handle {
@@ -845,6 +840,26 @@ p {
 
 .site-nav a::after {
   display: none;
+}
+
+.site-nav a.is-active {
+  color: var(--teal-600);
+  font-weight: 600;
+}
+
+.site-header--inverse .site-nav a.is-active {
+  color: #b3dfe3;
+}
+
+.site-nav a.is-active::after {
+  background: currentColor;
+  bottom: -9px;
+  content: "";
+  display: block;
+  height: 2px;
+  left: 0;
+  position: absolute;
+  width: 100%;
 }
 
 .menu-button {
@@ -4457,7 +4472,6 @@ p {
   }
 
   .site-nav .whatsapp-icon {
-    filter: brightness(0) invert(1);
     height: 20px;
     width: 20px;
   }
