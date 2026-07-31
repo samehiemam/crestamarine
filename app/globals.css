@@ -808,6 +808,10 @@ p {
   display: none;
 }
 
+.instagram-handle {
+  display: none;
+}
+
 .instagram-icon {
   border: 1.7px solid currentColor;
   border-radius: 5px;

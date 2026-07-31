@@ -44,19 +44,13 @@ export default function Home() {
               wherever your course leads.
             </p>
             <div className="button-row">
-              <Link
-                className="button button--light button--configure"
-                href="/configure"
-              >
-                Configure your boat
-              </Link>
               <Link className="button button--ghost-light" href="/fleet">
                 Explore the fleet
               </Link>
             </div>
           </div>
           <div className="hero-foot">
-            <span>Based at Abu Tig Marina · Egypt</span>
+            <span>El Gouna · Egypt</span>
             <span>Full & co-ownership</span>
             <span>Yacht care & concierge</span>
           </div>
@@ -121,29 +115,6 @@ export default function Home() {
                 </Link>
               </article>
             ))}
-          </div>
-        </section>
-
-        <section className="studio-teaser">
-          <div className="studio-copy">
-            <span className="eyebrow">Cresta Studio</span>
-            <h2>Your specification, before the quotation.</h2>
-            <p>
-              Select the model, hull, power, upholstery and equipment. Save the
-              result to your account so a Cresta advisor can prepare the right
-              quote.
-            </p>
-            <ul>
-              <li>Curated yacht models</li>
-              <li>Full or co-ownership</li>
-              <li>Saved to your customer account</li>
-            </ul>
-            <Link
-              className="button button--primary button--configure"
-              href="/configure"
-            >
-              Configure your boat
-            </Link>
           </div>
         </section>
 
