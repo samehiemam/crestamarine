@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { safeRelativeReturnPath } from "../../../chatgpt-auth";
+import { publicOrigin } from "../public-origin";
 
 export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_CLIENT_ID) {
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest) {
   }
   const state = randomBytes(24).toString("base64url");
   const returnTo = safeRelativeReturnPath(request.nextUrl.searchParams.get("returnTo") ?? "/my-cresta");
-  const callback = `${request.nextUrl.origin}/api/auth/google/callback`;
+  const callback = `${publicOrigin(request)}/api/auth/google/callback`;
   const target = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   target.searchParams.set("client_id", process.env.GOOGLE_CLIENT_ID);
   target.searchParams.set("redirect_uri", callback);
