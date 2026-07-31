@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Configurator } from "../components/Configurator";
 import { SiteHeader } from "../components/SiteHeader";
 
@@ -12,7 +13,9 @@ export default function ConfigurePage() {
   return (
     <>
       <SiteHeader inverse solid />
-      <Configurator />
+      <Suspense fallback={<main className="configurator-page" aria-busy="true" />}>
+        <Configurator />
+      </Suspense>
     </>
   );
 }

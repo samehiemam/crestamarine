@@ -1,4 +1,5 @@
-import { env } from "cloudflare:workers";
+import type { ResultSetHeader } from "mysql2";
+import { getPool } from "../../../db/mysql";
 import { getChatGPTUser } from "../../chatgpt-auth";
 import {
   canManageAccounts,
@@ -42,7 +43,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const manager = await requireManager();
-  if (!manager || !env.DB) {
+  const db = getPool();
+  if (!manager || !db) {
     return Response.json({ error: "Not authorised" }, { status: 403 });
   }
 
@@ -68,25 +70,23 @@ export async function POST(request: Request) {
   await ensureUsersTable();
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
-  await env.DB.prepare(
+  await db.execute(
     `INSERT INTO users (
       id, email, full_name, phone, requested_role, approved_role,
       company, message, auth_provider, status, source, created_at,
       updated_at, reviewed_at, reviewed_by
     ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL, 'approved', 'employee_portal', ?, ?, ?, ?)
-    ON CONFLICT(email) DO UPDATE SET
-      full_name = excluded.full_name,
-      phone = excluded.phone,
-      requested_role = excluded.requested_role,
-      approved_role = excluded.approved_role,
-      company = excluded.company,
+    ON DUPLICATE KEY UPDATE
+      full_name = VALUES(full_name),
+      phone = VALUES(phone),
+      requested_role = VALUES(requested_role),
+      approved_role = VALUES(approved_role),
+      company = VALUES(company),
       status = 'approved',
-      source = excluded.source,
-      updated_at = excluded.updated_at,
-      reviewed_at = excluded.reviewed_at,
-      reviewed_by = excluded.reviewed_by`,
-  )
-    .bind(
+      source = VALUES(source),
+      updated_at = VALUES(updated_at),
+      reviewed_at = VALUES(reviewed_at),
+      reviewed_by = VALUES(reviewed_by)`, [
       id,
       email,
       fullName,
@@ -98,8 +98,7 @@ export async function POST(request: Request) {
       now,
       now,
       manager.email,
-    )
-    .run();
+    ]);
 
   const account = await getAccessUserByEmail(email);
   return Response.json({ ok: true, user: account }, { status: 201 });
@@ -107,7 +106,8 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   const manager = await requireManager();
-  if (!manager || !env.DB) {
+  const db = getPool();
+  if (!manager || !db) {
     return Response.json({ error: "Not authorised" }, { status: 403 });
   }
 
@@ -120,7 +120,7 @@ export async function PATCH(request: Request) {
 
   await ensureUsersTable();
   const reviewedAt = new Date().toISOString();
-  const result = await env.DB.prepare(
+  const [result] = await db.execute<ResultSetHeader>(
     `UPDATE users
      SET
        status = ?,
@@ -130,11 +130,10 @@ export async function PATCH(request: Request) {
        updated_at = ?
      WHERE id = ?
        AND requested_role = 'ambassador'`,
-  )
-    .bind(status, status, reviewedAt, manager.email, reviewedAt, id)
-    .run();
+    [status, status, reviewedAt, manager.email, reviewedAt, id],
+  );
 
-  if (!result.meta.changes) {
+  if (!result.affectedRows) {
     return Response.json(
       { error: "Ambassador application not found" },
       { status: 404 },

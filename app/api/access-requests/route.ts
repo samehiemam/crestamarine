@@ -1,4 +1,5 @@
-import { env } from "cloudflare:workers";
+import type { ResultSetHeader } from "mysql2";
+import { getPool, hasDatabase } from "../../../db/mysql";
 import { getChatGPTUser } from "../../chatgpt-auth";
 import {
   ensureUsersTable,
@@ -55,27 +56,26 @@ export async function POST(request: Request) {
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  if (env.DB) {
+  const db = getPool();
+  if (db) {
     await ensureUsersTable();
-    await env.DB.prepare(
+    await db.execute(
       `INSERT INTO users (
         id, email, full_name, phone, requested_role, approved_role,
         company, message, auth_provider, status, source, created_at,
         updated_at, reviewed_at, reviewed_by
       ) VALUES (?, ?, ?, ?, ?, NULL, ?, ?, NULL, 'pending', ?, ?, ?, NULL, NULL)
-      ON CONFLICT(email) DO UPDATE SET
-        full_name = excluded.full_name,
-        phone = excluded.phone,
-        requested_role = excluded.requested_role,
-        company = excluded.company,
-        message = excluded.message,
+      ON DUPLICATE KEY UPDATE
+        full_name = VALUES(full_name),
+        phone = VALUES(phone),
+        requested_role = VALUES(requested_role),
+        company = VALUES(company),
+        message = VALUES(message),
         status = 'pending',
-        source = excluded.source,
-        updated_at = excluded.updated_at,
+        source = VALUES(source),
+        updated_at = VALUES(updated_at),
         reviewed_at = NULL,
-        reviewed_by = NULL`,
-    )
-      .bind(
+        reviewed_by = NULL`, [
         id,
         email,
         fullName,
@@ -86,8 +86,7 @@ export async function POST(request: Request) {
         source,
         now,
         now,
-      )
-      .run();
+      ]);
   }
 
   const notificationSent = await notifyAdmin({
@@ -106,7 +105,7 @@ export async function POST(request: Request) {
     requestId: id,
     status: "pending",
     notificationSent,
-    preview: !env.DB,
+    preview: !hasDatabase(),
   });
 }
 
@@ -121,7 +120,8 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const user = await getChatGPTUser();
-  if (!user || !isAdminEmail(user.email) || !env.DB) {
+  const db = getPool();
+  if (!user || !isAdminEmail(user.email) || !db) {
     return Response.json({ error: "Not authorised" }, { status: 403 });
   }
 
@@ -134,7 +134,7 @@ export async function PATCH(request: Request) {
 
   await ensureUsersTable();
   const reviewedAt = new Date().toISOString();
-  const result = await env.DB.prepare(
+  const [result] = await db.execute<ResultSetHeader>(
     `UPDATE users
      SET
        status = ?,
@@ -143,11 +143,10 @@ export async function PATCH(request: Request) {
        reviewed_by = ?,
        updated_at = ?
      WHERE id = ?`,
-  )
-    .bind(status, status, reviewedAt, user.email, reviewedAt, id)
-    .run();
+    [status, status, reviewedAt, user.email, reviewedAt, id],
+  );
 
-  if (!result.meta.changes) {
+  if (!result.affectedRows) {
     return Response.json({ error: "Request not found" }, { status: 404 });
   }
 
@@ -164,23 +163,18 @@ async function notifyAdmin(input: {
   message: string;
   origin: string;
 }) {
-  const runtimeEnv = env as typeof env & {
-    RESEND_API_KEY?: string;
-    RESEND_FROM_EMAIL?: string;
-    ADMIN_NOTIFICATION_EMAIL?: string;
-  };
-  if (!runtimeEnv.RESEND_API_KEY || !runtimeEnv.RESEND_FROM_EMAIL) return false;
+  if (!process.env.RESEND_API_KEY || !process.env.RESEND_FROM_EMAIL) return false;
 
   const recipient =
-    runtimeEnv.ADMIN_NOTIFICATION_EMAIL ?? "admin@crestamarine.com";
+    process.env.ADMIN_NOTIFICATION_EMAIL ?? "admin@crestamarine.com";
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
-      authorization: `Bearer ${runtimeEnv.RESEND_API_KEY}`,
+      authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      from: runtimeEnv.RESEND_FROM_EMAIL,
+      from: process.env.RESEND_FROM_EMAIL,
       to: [recipient],
       subject: `Cresta ${input.role} access request — ${input.fullName}`,
       text: [

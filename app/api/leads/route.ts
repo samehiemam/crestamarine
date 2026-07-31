@@ -1,4 +1,4 @@
-import { env } from "cloudflare:workers";
+import { getPool, hasDatabase } from "../../../db/mysql";
 
 type LeadPayload = {
   name?: string;
@@ -9,36 +9,32 @@ type LeadPayload = {
 };
 
 async function ensureTables() {
-  const db = env.DB;
+  const db = getPool();
   if (!db) return;
 
-  await db
-    .prepare(
+  await db.execute(
       `CREATE TABLE IF NOT EXISTS leads (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        email TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        auth_provider TEXT,
-        role TEXT NOT NULL DEFAULT 'prospect',
-        status TEXT NOT NULL DEFAULT 'quote_requested',
-        created_at TEXT NOT NULL
-      )`,
-    )
-    .run();
+        id VARCHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(64) NOT NULL,
+        auth_provider VARCHAR(64),
+        role VARCHAR(32) NOT NULL DEFAULT 'prospect',
+        status VARCHAR(32) NOT NULL DEFAULT 'quote_requested',
+        created_at VARCHAR(32) NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+    );
 
-  await db
-    .prepare(
+  await db.execute(
       `CREATE TABLE IF NOT EXISTS boat_configurations (
-        id TEXT PRIMARY KEY,
-        lead_id TEXT NOT NULL,
-        model TEXT NOT NULL,
-        configuration_json TEXT NOT NULL,
-        created_at TEXT NOT NULL,
+        id VARCHAR(36) PRIMARY KEY,
+        lead_id VARCHAR(36) NOT NULL,
+        model VARCHAR(128) NOT NULL,
+        configuration_json JSON NOT NULL,
+        created_at VARCHAR(32) NOT NULL,
         FOREIGN KEY (lead_id) REFERENCES leads(id)
-      )`,
-    )
-    .run();
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`,
+    );
 }
 
 export async function POST(request: Request) {
@@ -56,44 +52,46 @@ export async function POST(request: Request) {
   const createdAt = new Date().toISOString();
   const configuration = payload.configuration as { model?: string };
 
-  if (env.DB) {
+  const db = getPool();
+  if (db) {
     await ensureTables();
-    await env.DB.batch([
-      env.DB
-        .prepare(
+    const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
+      await connection.execute(
           `INSERT INTO leads
            (id, name, email, phone, auth_provider, role, status, created_at)
-           VALUES (?, ?, ?, ?, ?, 'prospect', 'quote_requested', ?)`,
-        )
-        .bind(
+           VALUES (?, ?, ?, ?, ?, 'prospect', 'quote_requested', ?)`, [
           leadId,
           name,
           email,
           phone,
           String(payload.provider ?? ""),
           createdAt,
-        ),
-      env.DB
-        .prepare(
+        ]);
+      await connection.execute(
           `INSERT INTO boat_configurations
            (id, lead_id, model, configuration_json, created_at)
-           VALUES (?, ?, ?, ?, ?)`,
-        )
-        .bind(
+           VALUES (?, ?, ?, ?, ?)`, [
           configurationId,
           leadId,
           String(configuration.model ?? "Kumbra"),
           JSON.stringify(payload.configuration),
           createdAt,
-        ),
-    ]);
+        ]);
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
   }
 
   return Response.json({
     ok: true,
     leadId,
     configurationId,
-    preview: !env.DB,
+    preview: !hasDatabase(),
   });
 }
-

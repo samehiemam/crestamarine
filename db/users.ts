@@ -1,4 +1,5 @@
-import { env } from "cloudflare:workers";
+import type { RowDataPacket } from "mysql2";
+import { getPool, rows } from "./mysql";
 
 export type UserRole = "client" | "employee" | "ambassador";
 export type UserStatus = "pending" | "approved" | "rejected";
@@ -21,40 +22,27 @@ export type AccessUser = {
   reviewedBy: string | null;
 };
 
-export async function ensureUsersTable() {
-  if (!env.DB) return;
+type AccessUserRow = AccessUser & RowDataPacket;
 
-  await env.DB.batch([
-    env.DB.prepare(
-      `CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT NOT NULL,
-        full_name TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        requested_role TEXT NOT NULL,
-        approved_role TEXT,
-        company TEXT,
-        message TEXT,
-        auth_provider TEXT,
-        status TEXT NOT NULL DEFAULT 'pending',
-        source TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        reviewed_at TEXT,
-        reviewed_by TEXT
-      )`,
-    ),
-    env.DB.prepare(
-      "CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email)",
-    ),
-  ]);
+export async function ensureUsersTable() {
+  const pool = getPool();
+  if (!pool) return;
+  await pool.execute(`CREATE TABLE IF NOT EXISTS users (
+    id VARCHAR(36) PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    full_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(64) NOT NULL,
+    requested_role VARCHAR(32) NOT NULL,
+    approved_role VARCHAR(32), company VARCHAR(255), message TEXT,
+    auth_provider VARCHAR(64), status VARCHAR(32) NOT NULL DEFAULT 'pending',
+    source VARCHAR(64) NOT NULL, created_at VARCHAR(32) NOT NULL,
+    updated_at VARCHAR(32) NOT NULL, reviewed_at VARCHAR(32), reviewed_by VARCHAR(255)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`);
 }
 
 export async function listAccessUsers(): Promise<AccessUser[]> {
-  if (!env.DB) return [];
   await ensureUsersTable();
-
-  const result = await env.DB.prepare(
+  return rows<AccessUserRow>(
     `SELECT
       id,
       email,
@@ -75,9 +63,7 @@ export async function listAccessUsers(): Promise<AccessUser[]> {
     ORDER BY
       CASE status WHEN 'pending' THEN 0 WHEN 'approved' THEN 1 ELSE 2 END,
       created_at DESC`,
-  ).all<AccessUser>();
-
-  return result.results;
+  );
 }
 
 export async function listManagedAccounts(): Promise<AccessUser[]> {
@@ -91,10 +77,8 @@ export async function listManagedAccounts(): Promise<AccessUser[]> {
 export async function getAccessUserByEmail(
   email: string,
 ): Promise<AccessUser | null> {
-  if (!env.DB) return null;
   await ensureUsersTable();
-
-  return env.DB.prepare(
+  const result = await rows<AccessUserRow>(
     `SELECT
       id,
       email,
@@ -114,14 +98,13 @@ export async function getAccessUserByEmail(
     FROM users
     WHERE email = ?
     LIMIT 1`,
-  )
-    .bind(email.trim().toLowerCase())
-    .first<AccessUser>();
+    [email.trim().toLowerCase()],
+  );
+  return result[0] ?? null;
 }
 
 export function isAdminEmail(email: string) {
-  const runtimeEnv = env as typeof env & { ADMIN_EMAILS?: string };
-  const configured = runtimeEnv.ADMIN_EMAILS ?? "admin@crestamarine.com";
+  const configured = process.env.ADMIN_EMAILS ?? "admin@crestamarine.com";
   return configured
     .split(",")
     .map((value: string) => value.trim().toLowerCase())

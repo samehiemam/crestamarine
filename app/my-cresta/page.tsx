@@ -144,8 +144,7 @@ export default async function MyCrestaPage() {
                 <>
                   <h2>Secure account access.</h2>
                   <p>
-                    Use your Google account on the secure sign-in screen, or
-                    continue with your existing ChatGPT account.
+                    Use your Google account on Cresta&apos;s secure sign-in screen.
                   </p>
                   <a
                     className="social-button social-button--google"
@@ -162,10 +161,7 @@ export default async function MyCrestaPage() {
                   >
                     Continue securely
                   </a>
-                  <small>
-                    Google is available through Cresta&apos;s secure account
-                    sign-in.
-                  </small>
+                  <small>Your password is never shared with Cresta Marine.</small>
                 </>
               )}
             </aside>

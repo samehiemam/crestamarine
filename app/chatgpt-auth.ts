@@ -1,4 +1,5 @@
-import { headers } from "next/headers";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 export type ChatGPTUser = {
@@ -7,80 +8,64 @@ export type ChatGPTUser = {
   fullName: string | null;
 };
 
-const USER_EMAIL_HEADER = "oai-authenticated-user-email";
-const USER_FULL_NAME_HEADER = "oai-authenticated-user-full-name";
-const USER_FULL_NAME_ENCODING_HEADER =
-  "oai-authenticated-user-full-name-encoding";
-const PERCENT_ENCODED_UTF8 = "percent-encoded-utf-8";
-const SIGN_IN_PATH = "/signin-with-chatgpt";
-const SIGN_OUT_PATH = "/signout-with-chatgpt";
-const CALLBACK_PATH = "/callback";
+export const SESSION_COOKIE = "cresta_session";
 
-export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get(USER_EMAIL_HEADER);
-  if (!email) return null;
-
-  const encodedFullName = requestHeaders.get(USER_FULL_NAME_HEADER);
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get(USER_FULL_NAME_ENCODING_HEADER) === PERCENT_ENCODED_UTF8
-      ? safeDecodeURIComponent(encodedFullName)
-      : null;
-
-  return {
-    displayName: fullName ?? email,
-    email,
-    fullName,
-  };
+function secret() {
+  return process.env.AUTH_SECRET ?? "";
 }
 
-export async function requireChatGPTUser(
-  returnTo: string,
-): Promise<ChatGPTUser> {
+function sign(value: string) {
+  return createHmac("sha256", secret()).update(value).digest("base64url");
+}
+
+export function createSession(user: ChatGPTUser) {
+  if (!secret()) throw new Error("AUTH_SECRET is required");
+  const payload = Buffer.from(
+    JSON.stringify({ ...user, expires: Date.now() + 7 * 24 * 60 * 60 * 1000 }),
+  ).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readSession(value?: string): ChatGPTUser | null {
+  if (!value || !secret()) return null;
+  const [payload, signature] = value.split(".");
+  if (!payload || !signature) return null;
+  const expected = Buffer.from(sign(payload));
+  const received = Buffer.from(signature);
+  if (expected.length !== received.length || !timingSafeEqual(expected, received)) return null;
+  try {
+    const session = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+    if (!session.email || session.expires < Date.now()) return null;
+    return { email: session.email, fullName: session.fullName ?? null, displayName: session.fullName ?? session.email };
+  } catch {
+    return null;
+  }
+}
+
+export async function getChatGPTUser(): Promise<ChatGPTUser | null> {
+  return readSession((await cookies()).get(SESSION_COOKIE)?.value);
+}
+
+export async function requireChatGPTUser(returnTo: string): Promise<ChatGPTUser> {
   const user = await getChatGPTUser();
   if (user) return user;
-
   redirect(chatGPTSignInPath(returnTo));
 }
 
 export function chatGPTSignInPath(returnTo: string): string {
-  const safeReturnTo = safeRelativeReturnPath(returnTo);
-  return `${SIGN_IN_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
+  return `/api/auth/google?returnTo=${encodeURIComponent(safeRelativeReturnPath(returnTo))}`;
 }
 
 export function chatGPTSignOutPath(returnTo = "/"): string {
-  const safeReturnTo = safeRelativeReturnPath(returnTo);
-  return `${SIGN_OUT_PATH}?return_to=${encodeURIComponent(safeReturnTo)}`;
+  return `/api/auth/signout?returnTo=${encodeURIComponent(safeRelativeReturnPath(returnTo))}`;
 }
 
-function safeRelativeReturnPath(value: string): string {
+export function safeRelativeReturnPath(value: string): string {
   if (!value.startsWith("/") || value.startsWith("//")) return "/";
-
-  let url: URL;
   try {
-    url = new URL(value, "https://app.local");
+    const url = new URL(value, "https://app.local");
+    return url.origin === "https://app.local" ? `${url.pathname}${url.search}${url.hash}` : "/";
   } catch {
     return "/";
-  }
-  if (url.origin !== "https://app.local") return "/";
-  if (isReservedAuthPath(url.pathname)) return "/";
-
-  return `${url.pathname}${url.search}${url.hash}`;
-}
-
-function isReservedAuthPath(pathname: string): boolean {
-  return (
-    pathname === SIGN_IN_PATH ||
-    pathname === SIGN_OUT_PATH ||
-    pathname === CALLBACK_PATH
-  );
-}
-
-function safeDecodeURIComponent(value: string): string | null {
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return null;
   }
 }
