@@ -5,6 +5,8 @@ export type FinishOption = {
   label: string;
   tone: string;
   note?: string;
+  image?: string;
+  category?: "Standard" | "Premium" | "Natural";
 };
 
 export type EngineOption = {
@@ -629,29 +631,29 @@ export const finishOptions = {
     },
   ] satisfies FinishOption[],
   furniture: [
-    { id: "wenge", label: "Wenge", tone: "#6d635c", note: "Standard" },
-    { id: "multiplis-nature", label: "Multiplis Nature", tone: "#817b72" },
-    { id: "pin-iceberg", label: "Pin Iceberg", tone: "#d8d6cf" },
-    { id: "chene-topia", label: "Chene Topia", tone: "#6c5945" },
+    { id: "wenge", label: "Wenge", tone: "#6d635c", note: "Standard", image: "/images/materials/interior-wenge.png" },
+    { id: "multiplis-nature", label: "Multiplis Nature", tone: "#817b72", image: "/images/materials/interior-multiplis-nature.png" },
+    { id: "pin-iceberg", label: "Pin Iceberg", tone: "#d8d6cf", image: "/images/materials/interior-pin-iceberg.png" },
+    { id: "chene-topia", label: "Chene Topia", tone: "#6c5945", image: "/images/materials/interior-chene-topia.png" },
   ] satisfies FinishOption[],
   flooring: [
-    { id: "chene-topia", label: "Chene Topia", tone: "#6c5945", note: "Standard" },
-    { id: "wenge", label: "Wenge", tone: "#6d635c" },
-    { id: "multiplis-nature", label: "Multiplis Nature", tone: "#817b72" },
-    { id: "pin-iceberg", label: "Pin Iceberg", tone: "#d8d6cf" },
+    { id: "chene-topia", label: "Chene Topia", tone: "#6c5945", note: "Standard", image: "/images/materials/interior-chene-topia.png" },
+    { id: "wenge", label: "Wenge", tone: "#6d635c", image: "/images/materials/interior-wenge.png" },
+    { id: "multiplis-nature", label: "Multiplis Nature", tone: "#817b72", image: "/images/materials/interior-multiplis-nature.png" },
+    { id: "pin-iceberg", label: "Pin Iceberg", tone: "#d8d6cf", image: "/images/materials/interior-pin-iceberg.png" },
   ] satisfies FinishOption[],
   countertop: [
-    { id: "multiplis-nature", label: "Multiplis Nature", tone: "#dce2e3", note: "Standard" },
-    { id: "carbon-concrete", label: "Carbon concrete", tone: "#242829" },
+    { id: "multiplis-nature", label: "Multiplis Nature", tone: "#dce2e3", note: "Standard", image: "/images/materials/countertop-multiplis-nature.png" },
+    { id: "carbon-concrete", label: "Carbon concrete", tone: "#242829", image: "/images/materials/countertop-carbon-concrete.png" },
   ] satisfies FinishOption[],
   teak: [
-    { id: "bleached", label: "Bleached", tone: "#c79d63", note: "Standard" },
-    { id: "scrubbed", label: "Scrubbed", tone: "#c3914c" },
-    { id: "weathered", label: "Weathered", tone: "#756f63" },
-    { id: "biscuit", label: "Biscuit", tone: "#b59b76", note: "Premium" },
-    { id: "platinum", label: "Platinum", tone: "#c9c5b8", note: "Premium" },
-    { id: "blanc-des-blancs", label: "Blanc des Blancs", tone: "#ebe8dc", note: "Premium" },
-    { id: "natural-teak", label: "Natural teak", tone: "#9f692b", note: "Natural" },
+    { id: "bleached", label: "Bleached", tone: "#c79d63", note: "Standard", category: "Standard", image: "/images/materials/teak-standard-bleached.png" },
+    { id: "scrubbed", label: "Scrubbed", tone: "#c3914c", category: "Standard", image: "/images/materials/teak-standard-scrubbed.png" },
+    { id: "weathered", label: "Weathered", tone: "#756f63", category: "Standard", image: "/images/materials/teak-standard-weathered.png" },
+    { id: "biscuit", label: "Biscuit", tone: "#b59b76", category: "Premium", image: "/images/materials/teak-premium-biscuit.png" },
+    { id: "platinum", label: "Platinum", tone: "#c9c5b8", category: "Premium", image: "/images/materials/teak-premium-platinum.png" },
+    { id: "blanc-des-blancs", label: "Blanc des Blancs", tone: "#ebe8dc", category: "Premium", image: "/images/materials/teak-premium-blanc-des-blancs.png" },
+    { id: "natural-teak", label: "Natural teak", tone: "#9f692b", category: "Natural", image: "/images/materials/teak-natural.png" },
   ] satisfies FinishOption[],
 };
 
@@ -730,10 +732,10 @@ export const finishLabels: Record<keyof typeof finishOptions, string> = {
   gelcoat: "Gelcoat",
   vinyl: "Vinyl lines",
   upholstery: "Upholstery",
-  furniture: "Furniture",
-  flooring: "Flooring",
-  countertop: "Countertops",
-  teak: "Teak",
+  furniture: "Interior furniture",
+  flooring: "Interior flooring",
+  countertop: "Interior countertops",
+  teak: "Teak decking",
 };
 
 export function visualColour(gelcoat: string): "white" | "blue" | "antracite" {

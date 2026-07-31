@@ -5531,6 +5531,18 @@ p {
   width: 100%;
 }
 
+.material-swatch--photo {
+  background-color: var(--warm-100);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 82px;
+}
+
+.finish-options button:has(.material-swatch--photo) {
+  min-height: 132px;
+}
+
 .material-name {
   font-size: 0.6rem;
   line-height: 1.2;
@@ -5543,6 +5555,33 @@ p {
   font-size: 0.5rem;
   margin: 3px 2px 0;
   text-transform: uppercase;
+}
+
+.teak-categories {
+  display: grid;
+  gap: 20px;
+}
+
+.teak-category {
+  background: var(--warm-50);
+  border: 1px solid var(--warm-200);
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.teak-category-label {
+  color: var(--teal-700);
+  display: block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.teak-category .finish-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .equipment-toolbar {
@@ -5889,6 +5928,10 @@ p {
 
   .finish-options button {
     min-height: 92px;
+  }
+
+  .teak-category .finish-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .equipment-toolbar {

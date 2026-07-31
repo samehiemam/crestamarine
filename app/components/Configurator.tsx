@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   EquipmentOption,
+  FinishOption,
   finishLabels,
   finishOptions,
   modelOptions,
@@ -203,6 +204,36 @@ export function Configurator() {
     finishOptions.gelcoat.find((item) => item.id === finishes.gelcoat)?.tone ??
     finishOptions.gelcoat[0].tone;
 
+  function renderFinishOption(key: FinishKey, item: FinishOption) {
+    return (
+      <button
+        type="button"
+        key={item.id}
+        className={finishes[key] === item.id ? "is-selected" : ""}
+        onClick={() =>
+          setFinishes((currentFinishes) => ({
+            ...currentFinishes,
+            [key]: item.id,
+          }))
+        }
+        title={`${item.label}${item.note ? ` - ${item.note}` : ""}`}
+        aria-label={`Select ${item.label} for ${finishLabels[key]}`}
+      >
+        <span
+          className={`material-swatch${item.image ? " material-swatch--photo" : ""}`}
+          style={
+            item.image
+              ? { backgroundImage: `url(${item.image})` }
+              : { background: item.tone }
+          }
+          aria-hidden="true"
+        />
+        <span className="material-name">{item.label}</span>
+        {item.note && <small>{item.note}</small>}
+      </button>
+    );
+  }
+
   return (
     <>
       <main className="configurator">
@@ -335,31 +366,26 @@ export function Configurator() {
                         ?.label}
                     </span>
                   </div>
-                  <div className="finish-options">
-                    {finishOptions[key].map((item) => (
-                      <button
-                        type="button"
-                        key={item.id}
-                        className={finishes[key] === item.id ? "is-selected" : ""}
-                        onClick={() =>
-                          setFinishes((currentFinishes) => ({
-                            ...currentFinishes,
-                            [key]: item.id,
-                          }))
-                        }
-                        title={`${item.label}${item.note ? ` — ${item.note}` : ""}`}
-                        aria-label={`Select ${item.label} for ${finishLabels[key]}`}
-                      >
-                        <span
-                          className="material-swatch"
-                          style={{ background: item.tone }}
-                          aria-hidden="true"
-                        />
-                        <span className="material-name">{item.label}</span>
-                        {item.note && <small>{item.note}</small>}
-                      </button>
-                    ))}
-                  </div>
+                  {key === "teak" ? (
+                    <div className="teak-categories">
+                      {(["Standard", "Premium", "Natural"] as const).map(
+                        (category) => (
+                          <div className="teak-category" key={category}>
+                            <span className="teak-category-label">{category}</span>
+                            <div className="finish-options">
+                              {finishOptions.teak
+                                .filter((item) => item.category === category)
+                                .map((item) => renderFinishOption(key, item))}
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  ) : (
+                    <div className="finish-options">
+                      {finishOptions[key].map((item) => renderFinishOption(key, item))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
