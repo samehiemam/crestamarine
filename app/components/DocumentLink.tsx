@@ -1,10 +1,4 @@
-"use client";
-
-import type {
-  AnchorHTMLAttributes,
-  MouseEvent,
-  ReactNode,
-} from "react";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
 
 type DocumentLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
   href: string;
@@ -16,38 +10,13 @@ type DocumentLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> &
  * navigation responses. Use document navigation so every route requests HTML.
  */
 export function DocumentLink({ href, children, ...props }: DocumentLinkProps) {
-  function navigateAsDocument(event: MouseEvent<HTMLAnchorElement>) {
-    props.onClick?.(event);
-
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey ||
-      props.target === "_blank" ||
-      props.download ||
-      !href.startsWith("/") ||
-      href.startsWith("//") ||
-      href.startsWith("/#")
-    ) {
-      return;
-    }
-
-    const destination = new URL(href, window.location.href);
-    const recovery = new URL("/document-recovery.html", window.location.origin);
-    recovery.searchParams.set(
-      "path",
-      `${destination.pathname}${destination.search}${destination.hash}`,
-    );
-    recovery.searchParams.set("v", Date.now().toString(36));
-    event.preventDefault();
-    window.location.assign(recovery);
-  }
+  const documentHref =
+    href.startsWith("/") && !href.startsWith("//") && !href.startsWith("/#")
+      ? `/document-recovery.html?path=${encodeURIComponent(href)}`
+      : href;
 
   return (
-    <a href={href} {...props} onClick={navigateAsDocument}>
+    <a href={documentHref} {...props}>
       {children}
     </a>
   );
