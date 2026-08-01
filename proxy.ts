@@ -22,7 +22,36 @@ export function proxy(_request: NextRequest) {
     const sourceUrl = new URL(_request.url);
     sourceUrl.pathname =
       recoverySourceMatch[1] === "/__root__" ? "/" : recoverySourceMatch[1];
-    return NextResponse.rewrite(sourceUrl);
+
+    // A recovery request may have originated from a Next.js client transition.
+    // Remove every flight-router hint so the internal rewrite is rendered as a
+    // complete HTML document, even when an intermediary preserved the headers.
+    const documentHeaders = new Headers(_request.headers);
+    [
+      "rsc",
+      "next-router-state-tree",
+      "next-router-prefetch",
+      "next-router-segment-prefetch",
+      "next-url",
+      "x-nextjs-data",
+      "x-middleware-prefetch",
+      "purpose",
+    ].forEach((header) => documentHeaders.delete(header));
+    documentHeaders.set("accept", "text/html,application/xhtml+xml");
+    documentHeaders.set("sec-fetch-dest", "document");
+
+    const response = NextResponse.rewrite(sourceUrl, {
+      request: { headers: documentHeaders },
+    });
+    response.headers.set(
+      "Cache-Control",
+      "private, no-cache, no-store, max-age=0, must-revalidate",
+    );
+    response.headers.set("CDN-Cache-Control", "no-store");
+    response.headers.set("Surrogate-Control", "no-store");
+    response.headers.set("X-LiteSpeed-Cache-Control", "no-cache");
+    response.headers.set("Vary", varyHeaders);
+    return response;
   }
 
   const isFlightRequest =
