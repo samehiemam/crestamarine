@@ -40,7 +40,10 @@
         }
 
         const html = await response.text();
-        window.history.replaceState(window.history.state, "", documentPath);
+        const cleanUrl = new URL(documentPath, window.location.origin);
+        cleanUrl.searchParams.delete("__document");
+        const cleanPath = `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`;
+        window.history.replaceState(window.history.state, "", cleanPath);
         document.open();
         document.write(html);
         document.close();
