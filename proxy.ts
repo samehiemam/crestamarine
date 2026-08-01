@@ -13,6 +13,28 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
+  if (
+    (_request.headers.get("rsc") === "1" ||
+      _request.headers.get("accept")?.includes("text/x-component")) &&
+    _request.nextUrl.pathname !== "/document"
+  ) {
+    const documentUrl = new URL("/document", _request.url);
+    documentUrl.searchParams.set(
+      "path",
+      `${_request.nextUrl.pathname}${_request.nextUrl.search}`,
+    );
+
+    const redirect = NextResponse.redirect(documentUrl, 307);
+    redirect.headers.set(
+      "Cache-Control",
+      "private, no-cache, no-store, max-age=0, must-revalidate",
+    );
+    redirect.headers.set("CDN-Cache-Control", "no-store");
+    redirect.headers.set("Surrogate-Control", "no-store");
+    redirect.headers.set("X-LiteSpeed-Cache-Control", "no-cache");
+    return redirect;
+  }
+
   const response = NextResponse.next();
 
   response.headers.set(

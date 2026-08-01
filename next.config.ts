@@ -9,6 +9,7 @@ const documentVaryHeaders = [
 ].join(", ");
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   poweredByHeader: false,
   compress: true,
   async headers() {
