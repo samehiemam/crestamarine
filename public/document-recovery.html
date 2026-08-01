@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Loading Cresta Marine…</title>
+  </head>
+  <body>
+    <script>
+      (function recoverDocument() {
+        try {
+          const recoveryUrl = new URL(window.location.href);
+          const documentPath = recoveryUrl.searchParams.get("path");
+
+          if (
+            !documentPath ||
+            !documentPath.startsWith("/") ||
+            documentPath.startsWith("//") ||
+            documentPath.startsWith("/api/") ||
+            documentPath.startsWith("/_next/")
+          ) {
+            throw new Error("Invalid document path");
+          }
+
+          const target = new URL(documentPath, window.location.origin);
+          const form = document.createElement("form");
+          form.method = "get";
+          form.action = `${target.pathname}${target.hash}`;
+
+          target.searchParams.append("__document", Date.now().toString(36));
+          target.searchParams.forEach(function addField(value, name) {
+            const field = document.createElement("input");
+            field.type = "hidden";
+            field.name = name;
+            field.value = value;
+            form.appendChild(field);
+          });
+
+          document.body.appendChild(form);
+          form.submit();
+        } catch (error) {
+          document.body.textContent =
+            "Cresta Marine could not load this page. Please refresh once.";
+        }
+      })();
+    </script>
+  </body>
+</html>
