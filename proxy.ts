@@ -13,9 +13,14 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
+  const accept = _request.headers.get("accept") ?? "";
+  const isFlightRequest =
+    accept.includes("text/x-component") ||
+    (_request.headers.get("sec-fetch-dest") === "empty" &&
+      !accept.includes("text/html"));
+
   if (
-    (_request.headers.get("rsc") === "1" ||
-      _request.headers.get("accept")?.includes("text/x-component")) &&
+    isFlightRequest &&
     _request.nextUrl.pathname !== "/document-recovery.html"
   ) {
     const documentUrl = new URL("/document-recovery.html", _request.url);
