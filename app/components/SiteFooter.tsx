@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { DocumentLink as Link } from "./DocumentLink";
 
 export function SiteFooter() {
   return (

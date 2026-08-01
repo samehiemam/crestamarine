@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { DocumentLink as Link } from "../../components/DocumentLink";
 import { notFound } from "next/navigation";
 import { FeatureCarousel } from "../../components/FeatureCarousel";
 import { SiteFooter } from "../../components/SiteFooter";

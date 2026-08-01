@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { DocumentLink as Link } from "./DocumentLink";
 import type { AccessUser } from "../../db/users";
 import { EmployeeAccountDirectory } from "./EmployeeAccountDirectory";
 
