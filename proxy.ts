@@ -14,6 +14,27 @@ const varyHeaders = [
  */
 export function proxy(_request: NextRequest) {
   const accept = _request.headers.get("accept") ?? "";
+  const recoverySourceMatch = _request.nextUrl.pathname.match(
+    /^\/document-source\/[^/]+(\/.*)$/,
+  );
+
+  if (recoverySourceMatch) {
+    const sourceUrl = new URL(_request.url);
+    sourceUrl.pathname =
+      recoverySourceMatch[1] === "/__root__" ? "/" : recoverySourceMatch[1];
+
+    const response = NextResponse.rewrite(sourceUrl);
+    response.headers.set(
+      "Cache-Control",
+      "private, no-cache, no-store, max-age=0, must-revalidate",
+    );
+    response.headers.set("CDN-Cache-Control", "no-store");
+    response.headers.set("Surrogate-Control", "no-store");
+    response.headers.set("X-LiteSpeed-Cache-Control", "no-cache");
+    response.headers.set("Vary", varyHeaders);
+    return response;
+  }
+
   const isFlightRequest =
     _request.headers.get("rsc") === "1" ||
     accept.includes("text/x-component") ||

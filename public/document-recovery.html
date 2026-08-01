@@ -26,7 +26,8 @@
           const target = new URL(documentPath, window.location.origin);
           const form = document.createElement("form");
           form.method = "get";
-          form.action = `${target.pathname}${target.hash}`;
+          const sourcePath = target.pathname === "/" ? "/__root__" : target.pathname;
+          form.action = `/document-source/${Date.now().toString(36)}${sourcePath}${target.hash}`;
 
           target.searchParams.append("__document", Date.now().toString(36));
           target.searchParams.forEach(function addField(value, name) {
