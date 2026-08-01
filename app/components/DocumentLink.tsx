@@ -10,13 +10,8 @@ type DocumentLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> &
  * navigation responses. Use document navigation so every route requests HTML.
  */
 export function DocumentLink({ href, children, ...props }: DocumentLinkProps) {
-  const documentHref =
-    href.startsWith("/") && !href.startsWith("//") && !href.startsWith("/#")
-      ? `/document-recovery.html?path=${encodeURIComponent(href)}`
-      : href;
-
   return (
-    <a href={documentHref} {...props}>
+    <a href={href} {...props}>
       {children}
     </a>
   );
