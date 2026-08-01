@@ -10,7 +10,7 @@ function recoveryHref(href: string) {
     return href;
   }
 
-  return `/document-recovery.html?path=${encodeURIComponent(href)}&v=hostinger-20260801-v4`;
+  return `/document-recovery.html?path=${encodeURIComponent(href)}&v=hostinger-20260801-v5`;
 }
 
 /**

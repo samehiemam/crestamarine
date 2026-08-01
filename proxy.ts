@@ -13,6 +13,26 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
+  const sourceMatch = _request.nextUrl.pathname.match(
+    /^\/document-source\/[^/]+(\/.*)$/,
+  );
+  if (sourceMatch) {
+    const target = new URL(_request.url);
+    target.pathname = sourceMatch[1] === "/__root__" ? "/" : sourceMatch[1];
+
+    const response = NextResponse.rewrite(target);
+    response.headers.set(
+      "Cache-Control",
+      "private, no-cache, no-store, max-age=0, must-revalidate",
+    );
+    response.headers.set("CDN-Cache-Control", "no-store");
+    response.headers.set("Surrogate-Control", "no-store");
+    response.headers.set("X-LiteSpeed-Cache-Control", "no-cache");
+    response.headers.set("Vary", varyHeaders);
+    response.headers.set("X-Content-Type-Options", "nosniff");
+    return response;
+  }
+
   const response = NextResponse.next();
 
   response.headers.set(

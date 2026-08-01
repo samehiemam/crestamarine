@@ -16,9 +16,12 @@ export async function POST(request: Request) {
   }
 
   const target = new URL(path, "https://crestamarine.invalid");
+  const nonce = Date.now().toString(36);
+  const sourcePath = target.pathname === "/" ? "/__root__" : target.pathname;
+  target.pathname = `/document-source/${nonce}${sourcePath}`;
   target.searchParams.set(
     "__html",
-    `hostinger-20260801-v4-${Date.now().toString(36)}`,
+    `hostinger-20260801-v5-${nonce}`,
   );
 
   return new Response(null, {

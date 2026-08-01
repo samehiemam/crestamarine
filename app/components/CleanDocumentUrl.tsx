@@ -5,10 +5,21 @@ import { useEffect } from "react";
 export function CleanDocumentUrl() {
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (!url.searchParams.has("__html")) {
+    let changed = false;
+    const sourceMatch = url.pathname.match(
+      /^\/document-source\/[^/]+(\/.*)$/,
+    );
+    if (sourceMatch) {
+      url.pathname = sourceMatch[1] === "/__root__" ? "/" : sourceMatch[1];
+      changed = true;
+    }
+    if (url.searchParams.has("__html")) {
+      url.searchParams.delete("__html");
+      changed = true;
+    }
+    if (!changed) {
       return;
     }
-    url.searchParams.delete("__html");
 
     window.history.replaceState(
       window.history.state,
