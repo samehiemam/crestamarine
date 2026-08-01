@@ -13,7 +13,7 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
-  if (_request.nextUrl.pathname === "/inspect-request") {
+  if (_request.nextUrl.pathname === "/mode-check-7391") {
     return NextResponse.json({
       accept: _request.headers.get("accept"),
       rsc: _request.headers.get("rsc"),
