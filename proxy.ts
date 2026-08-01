@@ -12,7 +12,7 @@ const varyHeaders = [
  * Prevent a shared proxy or CDN from caching a React Server Components flight
  * response and later serving it as an HTML document.
  */
-export function proxy(_request: NextRequest) {
+export async function proxy(_request: NextRequest) {
   const accept = _request.headers.get("accept") ?? "";
   const recoverySourceMatch = _request.nextUrl.pathname.match(
     /^\/document-source\/[^/]+(\/.*)$/,
@@ -22,8 +22,48 @@ export function proxy(_request: NextRequest) {
     const sourceUrl = new URL(_request.url);
     sourceUrl.pathname =
       recoverySourceMatch[1] === "/__root__" ? "/" : recoverySourceMatch[1];
+    sourceUrl.searchParams.set(
+      "__html_document",
+      _request.nextUrl.pathname.split("/")[2] ?? Date.now().toString(36),
+    );
 
-    const response = NextResponse.rewrite(sourceUrl);
+    // Render the target through a separate, explicitly HTML request. Returning
+    // that body here prevents Hostinger from reusing a flight response for the
+    // browser document, even when it ignores rewrite request-header overrides.
+    const documentHeaders = new Headers(_request.headers);
+    [
+      "rsc",
+      "next-router-state-tree",
+      "next-router-prefetch",
+      "next-router-segment-prefetch",
+      "next-url",
+      "x-nextjs-data",
+      "x-middleware-prefetch",
+      "purpose",
+      "host",
+    ].forEach((header) => documentHeaders.delete(header));
+    documentHeaders.set(
+      "accept",
+      "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    );
+    documentHeaders.set("sec-fetch-dest", "document");
+    documentHeaders.set("x-cresta-html-document", "1");
+
+    const documentResponse = await fetch(sourceUrl, {
+      headers: documentHeaders,
+      cache: "no-store",
+      redirect: "follow",
+    });
+    const documentBody = await documentResponse.text();
+    const documentType = documentResponse.headers.get("content-type") ?? "";
+    const response = new NextResponse(documentBody, {
+      status: documentResponse.status,
+      headers: {
+        "Content-Type": documentType.includes("text/html")
+          ? documentType
+          : "text/html; charset=utf-8",
+      },
+    });
     response.headers.set(
       "Cache-Control",
       "private, no-cache, no-store, max-age=0, must-revalidate",
