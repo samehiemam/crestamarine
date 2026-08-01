@@ -22,7 +22,8 @@ export function proxy(_request: NextRequest) {
 
   if (isRecoveryFetch && recoverySourceMatch) {
     const sourceUrl = new URL(_request.url);
-    sourceUrl.pathname = recoverySourceMatch[1];
+    sourceUrl.pathname =
+      recoverySourceMatch[1] === "/__root__" ? "/" : recoverySourceMatch[1];
     return NextResponse.rewrite(sourceUrl);
   }
 

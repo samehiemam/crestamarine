@@ -23,7 +23,8 @@
         }
 
         const sourceUrl = new URL(documentPath, window.location.origin);
-        sourceUrl.pathname = `/document-source/${Date.now().toString(36)}${sourceUrl.pathname}`;
+        const sourcePath = sourceUrl.pathname === "/" ? "/__root__" : sourceUrl.pathname;
+        sourceUrl.pathname = `/document-source/${Date.now().toString(36)}${sourcePath}`;
         sourceUrl.searchParams.set("__document_recovery", Date.now().toString(36));
 
         const response = await fetch(sourceUrl, {
