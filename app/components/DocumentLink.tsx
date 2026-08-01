@@ -5,7 +5,7 @@ type DocumentLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> &
   children: ReactNode;
 };
 
-const documentVersion = "server-v1";
+const documentVersion = "hostinger-20260801-v2";
 
 function versionedDocumentHref(href: string) {
   if (!href.startsWith("/") || href.startsWith("//") || href.startsWith("/#")) {
