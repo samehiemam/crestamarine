@@ -13,24 +13,19 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
-  if (_request.nextUrl.searchParams.get("mode_probe") === "7391") {
-    const mode = {
-      accept: _request.headers.get("accept"),
-      rsc: _request.headers.get("rsc"),
-      secFetchDest: _request.headers.get("sec-fetch-dest"),
-      secFetchMode: _request.headers.get("sec-fetch-mode"),
-      nextRouterPrefetch: _request.headers.get("next-router-prefetch"),
-      nextRouterStateTree: _request.headers.get("next-router-state-tree"),
-    };
-    const safeMode = JSON.stringify(mode).replaceAll("<", "\\u003c");
-    return new NextResponse(`<!doctype html><pre>${safeMode}</pre>`, {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
-
   const accept = _request.headers.get("accept") ?? "";
   const isRecoveryFetch =
     _request.headers.get("x-cresta-document-recovery") === "1";
+  const recoverySourceMatch = _request.nextUrl.pathname.match(
+    /^\/document-source\/[^/]+(\/.*)$/,
+  );
+
+  if (isRecoveryFetch && recoverySourceMatch) {
+    const sourceUrl = new URL(_request.url);
+    sourceUrl.pathname = recoverySourceMatch[1];
+    return NextResponse.rewrite(sourceUrl);
+  }
+
   const isFlightRequest =
     !isRecoveryFetch &&
     (_request.headers.get("sec-fetch-dest") === "document" ||
