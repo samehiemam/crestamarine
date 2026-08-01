@@ -37,8 +37,14 @@ export function DocumentLink({ href, children, ...props }: DocumentLinkProps) {
 
     const destination = new URL(href, window.location.href);
     destination.searchParams.set("__document", Date.now().toString(36));
+    const recovery = new URL("/document-recovery.html", window.location.origin);
+    recovery.searchParams.set(
+      "path",
+      `${destination.pathname}${destination.search}${destination.hash}`,
+    );
+    recovery.searchParams.set("v", Date.now().toString(36));
     event.preventDefault();
-    window.location.assign(destination);
+    window.location.assign(recovery);
   }
 
   return (

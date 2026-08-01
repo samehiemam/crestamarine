@@ -25,29 +25,7 @@
         const sourceUrl = new URL(documentPath, window.location.origin);
         const sourcePath = sourceUrl.pathname === "/" ? "/__root__" : sourceUrl.pathname;
         sourceUrl.pathname = `/document-source/${Date.now().toString(36)}${sourcePath}`;
-
-        const response = await fetch(sourceUrl, {
-          cache: "no-store",
-          credentials: "same-origin",
-          headers: {
-            Accept: "text/html",
-            "X-Cresta-Document-Recovery": "1",
-          },
-        });
-        const contentType = response.headers.get("content-type") || "";
-
-        if (!response.ok || !contentType.startsWith("text/html")) {
-          throw new Error("Unable to load document");
-        }
-
-        const html = await response.text();
-        const cleanUrl = new URL(documentPath, window.location.origin);
-        cleanUrl.searchParams.delete("__document");
-        const cleanPath = `${cleanUrl.pathname}${cleanUrl.search}${cleanUrl.hash}`;
-        window.history.replaceState(window.history.state, "", cleanPath);
-        document.open();
-        document.write(html);
-        document.close();
+        window.location.replace(sourceUrl);
       })().catch(function showRecoveryError() {
         document.body.textContent =
           "Cresta Marine could not load this page. Please refresh once.";

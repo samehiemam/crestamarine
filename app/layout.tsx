@@ -62,7 +62,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var url=new URL(window.location.href);if(url.searchParams.delete("__document")){window.history.replaceState(window.history.state,"",url.pathname+(url.search||"")+url.hash)}}catch(error){}})();`,
+            __html: `(function(){try{var url=new URL(window.location.href);var changed=false;var match=url.pathname.match(/^\\/document-source\\/[^/]+(\\/.*)$/);if(match){url.pathname=match[1]==="/__root__"?"/":match[1];changed=true}if(url.searchParams.delete("__document")){changed=true}if(changed){window.history.replaceState(window.history.state,"",url.pathname+(url.search||"")+url.hash)}}catch(error){}})();`,
           }}
         />
       </head>

@@ -14,13 +14,11 @@ const varyHeaders = [
  */
 export function proxy(_request: NextRequest) {
   const accept = _request.headers.get("accept") ?? "";
-  const isRecoveryFetch =
-    _request.headers.get("x-cresta-document-recovery") === "1";
   const recoverySourceMatch = _request.nextUrl.pathname.match(
     /^\/document-source\/[^/]+(\/.*)$/,
   );
 
-  if (isRecoveryFetch && recoverySourceMatch) {
+  if (recoverySourceMatch) {
     const sourceUrl = new URL(_request.url);
     sourceUrl.pathname =
       recoverySourceMatch[1] === "/__root__" ? "/" : recoverySourceMatch[1];
@@ -28,10 +26,9 @@ export function proxy(_request: NextRequest) {
   }
 
   const isFlightRequest =
-    !isRecoveryFetch &&
-    (_request.headers.get("sec-fetch-dest") === "document" ||
-      !accept.includes("text/html") ||
-      _request.nextUrl.searchParams.has("__document"));
+    _request.headers.get("sec-fetch-dest") === "document" ||
+    !accept.includes("text/html") ||
+    _request.nextUrl.searchParams.has("__document");
 
   if (
     isFlightRequest &&
