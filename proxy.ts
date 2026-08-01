@@ -13,14 +13,18 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
-  if (_request.nextUrl.pathname === "/mode-check-7391") {
-    return NextResponse.json({
+  if (_request.nextUrl.searchParams.get("mode_probe") === "7391") {
+    const mode = {
       accept: _request.headers.get("accept"),
       rsc: _request.headers.get("rsc"),
       secFetchDest: _request.headers.get("sec-fetch-dest"),
       secFetchMode: _request.headers.get("sec-fetch-mode"),
       nextRouterPrefetch: _request.headers.get("next-router-prefetch"),
       nextRouterStateTree: _request.headers.get("next-router-state-tree"),
+    };
+    const safeMode = JSON.stringify(mode).replaceAll("<", "\\u003c");
+    return new NextResponse(`<!doctype html><pre>${safeMode}</pre>`, {
+      headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   }
 
