@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Loading Cresta Marine…</title>
+  </head>
+  <body>
+    <script>
+      (async function recoverDocument() {
+        const recoveryUrl = new URL(window.location.href);
+        const documentPath = recoveryUrl.searchParams.get("path");
+
+        if (
+          !documentPath ||
+          !documentPath.startsWith("/") ||
+          documentPath.startsWith("//") ||
+          documentPath.startsWith("/api/") ||
+          documentPath.startsWith("/_next/")
+        ) {
+          throw new Error("Invalid document path");
+        }
+
+        const sourceUrl = new URL(documentPath, window.location.origin);
+        sourceUrl.searchParams.set("__document_recovery", Date.now().toString(36));
+
+        const response = await fetch(sourceUrl, {
+          cache: "no-store",
+          credentials: "same-origin",
+          headers: { Accept: "text/html" },
+        });
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!response.ok || !contentType.startsWith("text/html")) {
+          throw new Error("Unable to load document");
+        }
+
+        const html = await response.text();
+        window.history.replaceState(window.history.state, "", documentPath);
+        document.open();
+        document.write(html);
+        document.close();
+      })().catch(function showRecoveryError() {
+        document.body.textContent =
+          "Cresta Marine could not load this page. Please refresh once.";
+      });
+    </script>
+  </body>
+</html>

@@ -16,9 +16,9 @@ export function proxy(_request: NextRequest) {
   if (
     (_request.headers.get("rsc") === "1" ||
       _request.headers.get("accept")?.includes("text/x-component")) &&
-    _request.nextUrl.pathname !== "/document"
+    _request.nextUrl.pathname !== "/document-recovery.html"
   ) {
-    const documentUrl = new URL("/document", _request.url);
+    const documentUrl = new URL("/document-recovery.html", _request.url);
     documentUrl.searchParams.set(
       "path",
       `${_request.nextUrl.pathname}${_request.nextUrl.search}`,
