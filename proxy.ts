@@ -14,7 +14,11 @@ const varyHeaders = [
  */
 export function proxy(_request: NextRequest) {
   const accept = _request.headers.get("accept") ?? "";
-  const isFlightRequest = !accept.includes("text/html");
+  const isRecoveryFetch =
+    _request.headers.get("x-cresta-document-recovery") === "1";
+  const isFlightRequest =
+    !accept.includes("text/html") ||
+    (_request.nextUrl.searchParams.has("__document") && !isRecoveryFetch);
 
   if (
     isFlightRequest &&

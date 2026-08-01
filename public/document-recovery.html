@@ -28,7 +28,10 @@
         const response = await fetch(sourceUrl, {
           cache: "no-store",
           credentials: "same-origin",
-          headers: { Accept: "text/html" },
+          headers: {
+            Accept: "text/html",
+            "X-Cresta-Document-Recovery": "1",
+          },
         });
         const contentType = response.headers.get("content-type") || "";
 
