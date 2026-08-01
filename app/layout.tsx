@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
+import { CleanDocumentUrl } from "./components/CleanDocumentUrl";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -59,14 +60,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var url=new URL(window.location.href);if(url.searchParams.delete("__html")){window.history.replaceState(window.history.state,"",url.pathname+(url.search||"")+url.hash)}}catch(error){}})();`,
-          }}
-        />
-      </head>
-      <body>{children}</body>
+      <body>
+        <CleanDocumentUrl />
+        {children}
+      </body>
     </html>
   );
 }
