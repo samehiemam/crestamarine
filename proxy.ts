@@ -14,10 +14,7 @@ const varyHeaders = [
  */
 export function proxy(_request: NextRequest) {
   const accept = _request.headers.get("accept") ?? "";
-  const isFlightRequest =
-    accept.includes("text/x-component") ||
-    (_request.headers.get("sec-fetch-dest") === "empty" &&
-      !accept.includes("text/html"));
+  const isFlightRequest = !accept.includes("text/html");
 
   if (
     isFlightRequest &&
