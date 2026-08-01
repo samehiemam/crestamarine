@@ -17,7 +17,8 @@ export function proxy(_request: NextRequest) {
   const isFlightRequest =
     _request.headers.get("rsc") === "1" ||
     accept.includes("text/x-component") ||
-    _request.headers.has("next-router-state-tree");
+    _request.headers.has("next-router-state-tree") ||
+    !accept.includes("text/html");
 
   if (
     isFlightRequest &&
