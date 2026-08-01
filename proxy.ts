@@ -13,6 +13,17 @@ const varyHeaders = [
  * response and later serving it as an HTML document.
  */
 export function proxy(_request: NextRequest) {
+  if (_request.nextUrl.pathname === "/inspect-request") {
+    return NextResponse.json({
+      accept: _request.headers.get("accept"),
+      rsc: _request.headers.get("rsc"),
+      secFetchDest: _request.headers.get("sec-fetch-dest"),
+      secFetchMode: _request.headers.get("sec-fetch-mode"),
+      nextRouterPrefetch: _request.headers.get("next-router-prefetch"),
+      nextRouterStateTree: _request.headers.get("next-router-state-tree"),
+    });
+  }
+
   const accept = _request.headers.get("accept") ?? "";
   const isRecoveryFetch =
     _request.headers.get("x-cresta-document-recovery") === "1";
