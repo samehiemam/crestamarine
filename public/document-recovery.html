@@ -23,22 +23,15 @@
             throw new Error("Invalid document path");
           }
 
-          const target = new URL(documentPath, window.location.origin);
           const form = document.createElement("form");
-          form.method = "get";
-          form.action = `${target.pathname}${target.hash}`;
+          form.method = "post";
+          form.action = "/api/document-navigation";
 
-          target.searchParams.append(
-            "__html",
-            `hostinger-20260801-v3-${Date.now().toString(36)}`,
-          );
-          target.searchParams.forEach(function addField(value, name) {
-            const field = document.createElement("input");
-            field.type = "hidden";
-            field.name = name;
-            field.value = value;
-            form.appendChild(field);
-          });
+          const field = document.createElement("input");
+          field.type = "hidden";
+          field.name = "path";
+          field.value = documentPath;
+          form.appendChild(field);
 
           document.body.appendChild(form);
           form.submit();
