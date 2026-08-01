@@ -59,13 +59,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){try{var url=new URL(window.location.href);if(url.searchParams.delete("__document")){window.history.replaceState(window.history.state,"",url.pathname+(url.search||"")+url.hash)}}catch(error){}})();`,
-          }}
-        />
-      </head>
       <body>{children}</body>
     </html>
   );
